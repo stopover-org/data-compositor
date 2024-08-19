@@ -1,0 +1,122 @@
+interface Node {
+    id: ID!
+}
+
+input SchedulingInput {
+    name: String!
+    retentionPeriod: Int
+    maxRetries: Int
+    adapterType: AdapterType!
+    configuration: String!
+}
+
+input UpdateSchedulingInput {
+    id: ID!
+    name: String
+    retentionPeriod: Int
+    maxRetries: Int
+    adapterType: AdapterType
+    configuration: String
+}
+
+enum TaskStatus {
+    PENDING
+    PROCESSING
+    COMPLETED
+    FAILED
+    TERMINATED
+}
+
+enum SchedulingStatus {
+    ACTIVE
+    INACTIVE
+}
+
+enum AdapterType {
+    TEST_ADAPTER
+}
+
+input SchedulingFilterInput {
+    name: String
+    status: SchedulingStatus
+    adapterType: AdapterType
+}
+
+input TaskFilterInput {
+    schedulingId: ID!
+    status: TaskStatus
+    adapterType: AdapterType
+}
+
+type SchedulingConnection {
+    edges: [SchedulingEdge!]!
+    pageInfo: PageInfo!
+}
+
+type SchedulingEdge {
+    node: Scheduling!
+    cursor: String!
+}
+
+type TaskConnection {
+    edges: [TaskEdge!]!
+    pageInfo: PageInfo!
+}
+
+type TaskEdge {
+    node: Task!
+    cursor: String!
+}
+
+type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
+    totalCount: Int
+}
+
+type Scheduling implements Node {
+    id: ID!
+    name: String!
+    nextScheduleTime: String
+    retentionPeriod: Int!
+    maxRetries: Int!
+    status: SchedulingStatus!
+    adapterType: AdapterType!
+    configuration: String!
+    tasks(input: TaskFilterInput, first: Int, after: String, last: Int, before: String): TaskConnection!
+}
+
+type Task implements Node {
+    id: ID!
+    status: TaskStatus!
+    retries: Int!
+    artifacts: [String!]!
+    adapterType: AdapterType!
+    configuration: String!
+
+    schedulingId: ID!
+    scheduling: Scheduling!
+}
+
+type Query {
+    task(id: ID!): Task
+    scheduling(id: ID!): Scheduling
+    schedulings(input: SchedulingFilterInput, first: Int, after: String, last: Int, before: String): SchedulingConnection!
+    tasks(input: TaskFilterInput, first: Int, after: String, last: Int, before: String): TaskConnection!
+}
+
+type Mutation {
+    retryTask(id: ID!): Task
+    scheduleNow(id: ID!): Task
+    createScheduling(input: SchedulingInput!): Scheduling
+    updateScheduling(input: UpdateSchedulingInput!): Scheduling
+    toggleScheduling(id: ID!): Scheduling
+    removeScheduling(id: ID!): Scheduling
+}
+
+schema {
+    query: Query
+    mutation: Mutation
+}

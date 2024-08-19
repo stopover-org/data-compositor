@@ -1,0 +1,109 @@
+version: '3.1'
+
+services:
+  akhq:
+    image: tchiotludo/akhq:latest
+    container_name: compositor-akhq
+    environment:
+      AKHQ_CONFIGURATION: |
+        akhq:
+          connections:
+            kafka:
+              properties:
+                bootstrap.servers: "kafka:29092"
+    ports:
+      - "8082:8080"
+    depends_on:
+      - kafka
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: compositor-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: compositor-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_HOST://kafka:29092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  neo4j:
+    image: neo4j:latest
+    container_name: compositor-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+      - NEO4J_PLUGINS=["apoc", "graph-data-science"]
+    volumes:
+      - ./neo4j_db/data:/data
+      - ./neo4j_db/logs:/logs
+      - ./neo4j_db/import:/var/lib/neo4j/import
+      - ./neo4j_db/plugins:/plugins
+
+  # Keycloak service for authentication and authorization
+  keycloak:
+    build:
+      context: keycloak  # Build context for Keycloak
+    container_name: compositor-keycloak  # Container name for easier identification
+    environment:
+      KEYCLOAK_ADMIN: admin  # Keycloak admin username
+      KEYCLOAK_ADMIN_PASSWORD: admin  # Keycloak admin password
+      KEYCLOAK_DATABASE_VENDOR: postgres  # Database vendor
+      KC_DB: postgres  # Database name
+      KC_DB_URL_HOST: db  # Database host
+      KC_DB_URL_DATABASE: keycloak  # Database URL
+      KC_DB_URL_PORT: 5432  # Database port
+      KC_DB_USERNAME: robot  # Database username
+      KC_DB_PASSWORD: password  # Database password
+    ports:
+      - '8081:8080'  # Expose Keycloak on port 8081
+    volumes:
+      - ./keystore.p12:/keystore.p12  # Volume for keystore
+      - ./keycloak/themes/stopover:/opt/keycloak/themes/stopover  # Volume for Keycloak themes
+    depends_on:
+      - db  # Wait for the database to be ready
+
+  # PostgreSQL database service
+  db:
+    image: postgres  # PostgreSQL image
+    container_name: compositor-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Data volume
+    environment:
+      POSTGRES_USER: robot  # Database username
+      POSTGRES_PASSWORD: password  # Database password
+    ports:
+      - '5432:5432'  # Expose PostgreSQL on port 5432
+
+networks:
+  my_network:
+
+# Define volumes for persistent storage
+volumes:
+  postgres_data: { }
+  cache:
+    driver: local
+  opensearch-data1:
+  opensearch-data2:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_import:
+  neo4j_plugins:

@@ -1,0 +1,9 @@
+.idea/
+node_modules/
+
+/.DS_Store
+/frontend/.DS_Store
+.env
+/media/
+/keystore.p12
+/neo4j_db
