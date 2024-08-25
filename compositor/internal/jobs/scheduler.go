@@ -14,7 +14,7 @@ func SetupScheduler(db *gorm.DB, kafkaWriter *kafka.Writer) *gocron.Scheduler {
 
 	// Define jobs
 	scheduleTasksJob := NewScheduleTasksJob(db, kafkaWriter)
-	_, _ = s.Every(20).Seconds().Do(scheduleTasksJob.Run)
+	_, _ = s.Every(1).Minute().Do(scheduleTasksJob.Run)
 
 	// Start the scheduler
 	s.StartAsync()

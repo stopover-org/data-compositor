@@ -1,9 +1,10 @@
 import json
 import socket
+from datetime import datetime
 
 from confluent_kafka import Producer
-from playwright.async_api import async_playwright
 from neo4j import GraphDatabase
+from playwright.async_api import async_playwright
 
 
 class Adapter:
@@ -33,6 +34,10 @@ class Adapter:
 
     async def scrape(self, url, task_id):
         async with async_playwright() as p:
+            self.publish_to_kafka("data-compositor", "test_adapter", {
+                "task_id": task_id,
+                "status": "PROCESSING",
+            })
             browser = await p.chromium.launch(headless=True)
             page = await browser.new_page()
             await page.goto(url)
@@ -53,14 +58,19 @@ class Adapter:
                         })
                     """, title=title_text, url=title_url, parent_url=url, source='test')
 
-            self.publish_to_kafka("data-compositor", "test_adapter", {"task_id": task_id, "url": url})
+            self.publish_to_kafka("data-compositor", "test_adapter", {
+                "task_id": task_id,
+                "status": "COMPLETED",
+                "executed_at": datetime.now().isoformat(),
+                "retries": 1
+            })
 
             await browser.close()
 
     def publish_to_kafka(self, topic, key, value):
         try:
             self.kafka_producer.produce(topic, key=key, value=json.dumps(value).encode('utf-8'))
-            # self.kafka_producer.flush()
+            self.kafka_producer.flush()
             print(f"Message published to topic {topic}: {key} -> {value}")
         except Exception as e:
             print(f"Failed to publish message: {e}")

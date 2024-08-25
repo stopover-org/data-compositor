@@ -1,7 +1,6 @@
 package kafka_service
 
 import (
-	"context"
 	"github.com/joho/godotenv"
 	"github.com/segmentio/kafka-go"
 	"log"
@@ -33,7 +32,7 @@ func initKafkaWriter() {
 	}
 
 	kafkaURL := getEnv("KAFKA_URL", "localhost:9092")
-	kafkaTopic := getEnv("", "data-compositor")
+	kafkaTopic := getEnv("KAFKA_TOPIK", "data-compositor")
 
 	kafkaWriter = &kafka.Writer{
 		Addr:     kafka.TCP(kafkaURL),
@@ -67,17 +66,4 @@ func getEnv(key, defaultValue string) string {
 		return defaultValue
 	}
 	return value
-}
-
-func StartKafkaConsumer(kafkaReader *kafka.Reader) {
-	for {
-		m, err := kafkaReader.ReadMessage(context.Background())
-		if err != nil {
-			log.Printf("Error reading message from Kafka: %v", err)
-			continue
-		}
-		log.Printf("Message received: key = %s, value = %s, partition = %d, offset = %d\n",
-			string(m.Key), string(m.Value), m.Partition, m.Offset)
-		// Add your message processing logic here
-	}
 }

@@ -41,7 +41,7 @@ func main() {
 
 	jobs.SetupScheduler(dbInstance, kafkaWriterInstance)
 
-	go kafka_service.StartKafkaConsumer(kafkaReaderInstance)
+	go kafka_service.StartKafkaConsumer(kafkaReaderInstance, dbInstance)
 
 	e := echo.New()
 

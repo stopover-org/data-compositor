@@ -21,6 +21,7 @@ require (
 
 require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
+	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect

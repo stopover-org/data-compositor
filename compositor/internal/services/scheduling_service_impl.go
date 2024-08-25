@@ -102,7 +102,6 @@ func (s *schedulingServiceImpl) UpdateScheduling(id uuid.UUID, updatedFields gra
 	}
 
 	if err := s.db.Model(scheduling).Updates(updatedFields).Error; err != nil {
-
 		return nil, err
 	}
 
