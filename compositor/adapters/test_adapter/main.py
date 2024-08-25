@@ -3,7 +3,7 @@ import os
 import asyncio
 import uvicorn
 
-from dotenv import load_dotenv
+from    dotenv import load_dotenv
 from src.adapter import Adapter
 from app import app
 
