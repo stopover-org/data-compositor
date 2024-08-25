@@ -52,7 +52,7 @@ func OIDCAuthMiddleware(issuer, clientID string) echo.MiddlewareFunc {
 				return echo.ErrUnauthorized
 			}
 
-			if !slices.Contains(groups, "/analyst") {
+			if !slices.Contains(groups, "analyst") {
 				return echo.ErrUnauthorized
 			}
 
