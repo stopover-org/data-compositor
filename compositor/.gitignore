@@ -1,3 +1,7 @@
 .idea
 data-compositor
 .env
+adapters/venv
+adapters/.venv
+venv
+.venv
