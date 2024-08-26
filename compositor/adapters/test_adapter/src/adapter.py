@@ -46,6 +46,7 @@ class Adapter:
             })
             browser = await p.chromium.launch(headless=True)
             page = await browser.new_page()
+            artifacts = []
             await page.goto(url)
             await page.wait_for_selector('.card-body h4 a.title')
 
@@ -60,15 +61,18 @@ class Adapter:
 
             url_node.save()
 
+            artifacts.extend([platform, scrapper, url_node])
+
             for title in product_titles:
                 title_text = await title.get_attribute('title')
                 title_url = await title.get_attribute('href')
 
-                product_url = create_url_node(title_url, url)
-                product_url.found_at.connect(platform)
-                product_url.scrapped_by.connect(scrapper)
-                product_url.save()
-                url_node.contain_url.connect(product_url)
+                product_url_node = create_url_node(title_url, url)
+                product_url_node.found_at.connect(platform)
+                product_url_node.scrapped_by.connect(scrapper)
+                product_url_node.save()
+
+                url_node.contain_url.connect(product_url_node)
                 url_node.save()
 
                 product_title_artifact = find_or_create_node(Artifact, {
@@ -87,11 +91,14 @@ class Adapter:
                 product_title_artifact.containing_url.connect(url_node)
                 product_url_artifact.containing_url.connect(url_node)
 
+                artifacts.extend([product_title_artifact, product_url_artifact, product_url_node])
+
             self.publish_to_kafka(self.kafka_config.get("topik"), "test_adapter", {
                 "task_id": task_id,
                 "status": "COMPLETED",
                 "executed_at": datetime.now().isoformat(),
-                "retries": 1
+                "retries": 1,
+                "artifacts": json.dumps([artifact.to_dict() for artifact in artifacts])
             })
 
             await browser.close()
