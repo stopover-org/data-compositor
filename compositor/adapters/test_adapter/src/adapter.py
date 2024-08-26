@@ -98,7 +98,7 @@ class Adapter:
                 "status": "COMPLETED",
                 "executed_at": datetime.now().isoformat(),
                 "retries": 1,
-                "artifacts": json.dumps([artifact.to_dict() for artifact in artifacts])
+                "artifacts": [artifact.element_id for artifact in artifacts]
             })
 
             await browser.close()

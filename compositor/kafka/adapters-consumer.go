@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"github.com/araddon/dateparse"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/segmentio/kafka-go"
 	"github.com/stopover-org/stopover/data-compositor/db/models"
 	"gorm.io/gorm"
 	"log"
+	"strings"
 )
 
 func StartKafkaConsumer(kafkaReader *kafka.Reader, db *gorm.DB) {
@@ -54,11 +56,19 @@ func StartKafkaConsumer(kafkaReader *kafka.Reader, db *gorm.DB) {
 			taskUpdates["Retries"] = data["retries"]
 		}
 
+		if data["artifacts"] != nil {
+			taskUpdates["Artifacts"] = pq.Array(data["artifacts"])
+		}
+
 		if err := db.Model(task).Updates(taskUpdates).Error; err != nil {
-			log.Panicf("failed to update task status for task %s: %v", taskId, err)
+			log.Fatalf("failed to update task status for task %s: %v", taskId, err)
 		}
 
 		log.Printf("Message received: key = %s, value = %s, partition = %d, offset = %d\n",
 			string(m.Key), string(m.Value), m.Partition, m.Offset)
 	}
+}
+
+func escapeQuotes(input string) string {
+	return strings.ReplaceAll(input, `"`, `\"`)
 }

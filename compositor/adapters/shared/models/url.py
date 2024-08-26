@@ -21,10 +21,6 @@ class Url(StructuredNode):
     contain_url = Relationship('Url', 'CONTAINS')
     scrapped_by = Relationship(Scrapper, 'SCRAPPED_BY')
 
-    def to_dict(self):
-        serializable_types = (str, int, float, bool, type(None), list, dict)
-        return {key: value for key, value in vars(self).items() if isinstance(value, serializable_types)}
-
 
 def create_url_node(url, parent_url=None):
     parent_host = urlparse(parent_url or url)

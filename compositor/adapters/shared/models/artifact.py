@@ -11,7 +11,3 @@ class Artifact(StructuredNode):
 
     containing_url = Relationship(Url, 'FOUND')
     similar_artifacts = Relationship('Artifact', 'SIMILAR')
-
-    def to_dict(self):
-        serializable_types = (str, int, float, bool, type(None), list, dict)
-        return {key: value for key, value in vars(self).items() if isinstance(value, serializable_types)}
