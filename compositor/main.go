@@ -45,7 +45,6 @@ func main() {
 
 	e := echo.New()
 
-	// Set Up Middlewares
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{corsDomains}, // Add your allowed domains here
 		AllowMethods: []string{"*"},
@@ -55,32 +54,27 @@ func main() {
 	e.Use(middlewares.OIDCAuthMiddleware(oidcIssuer, oidcClientID))
 	e.Use(middleware.Recover())
 
-	// Set Up Resolvers
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
 		TaskService:       services.NewTaskService(),
 		SchedulingService: services.NewSchedulingService(),
 	}}))
 
-	// Set Up Graphql Endpoint
 	e.POST("/graphql", func(c echo.Context) error {
 		srv.ServeHTTP(c.Response(), c.Request())
 		return nil
 	})
 
-	// Set Up Graphiql Playground
 	e.GET("/playground", func(c echo.Context) error {
 		playground.Handler("GraphQL playground", "/graphql").ServeHTTP(c.Response(), c.Request())
 		return nil
 	})
 
-	// Start the server
 	go func() {
 		if err := e.Start(":3321"); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Error starting server: %v", err)
 		}
 	}()
 
-	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
@@ -94,7 +88,6 @@ func main() {
 		log.Fatalf("Server shutdown failed: %v", err)
 	}
 
-	// Close Kafka reader and writer
 	if err := kafkaReaderInstance.Close(); err != nil {
 		log.Fatalf("Failed to close Kafka reader: %v", err)
 	}
