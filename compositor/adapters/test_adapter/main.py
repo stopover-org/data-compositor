@@ -36,7 +36,7 @@ def lambda_handler(event, context):
             "password": "password",
             "topik": kafka_topik,
         })
-    asyncio.run(adapter.scrape(url, path_params.get("id")))
+    asyncio.run(adapter.scrape(path_params.get("id"), {}))
     adapter.close()
 
     return {

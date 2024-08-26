@@ -6,3 +6,4 @@ python-dotenv==1.0.1
 confluent_kafka==2.5.0
 python-dotenv==1.0.1
 neomodel==5.3.2
+jsonschema==4.23.0

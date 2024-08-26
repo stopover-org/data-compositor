@@ -38,7 +38,7 @@ class Adapter:
                 'security.protocol': 'PLAINTEXT',
             })
 
-    async def scrape(self, url, task_id):
+    async def scrape(self, task_id, configuration):
         async with async_playwright() as p:
             self.publish_to_kafka(self.kafka_config.get("topik"), "test_adapter", {
                 "task_id": task_id,
@@ -47,14 +47,12 @@ class Adapter:
             browser = await p.chromium.launch(headless=True)
             page = await browser.new_page()
             artifacts = []
-            await page.goto(url)
-            await page.wait_for_selector('.card-body h4 a.title')
-
-            product_titles = await page.query_selector_all('.card-body h4 a.title')
+            await page.goto(configuration['url'])
+            await page.wait_for_selector(configuration['wait_for_selector'])
 
             platform = find_or_create_node(Platform, {"name": 'test-platform'})
             scrapper = find_or_create_node(Scrapper, {"name": 'TestAdapter'})
-            url_node = create_url_node(url)
+            url_node = create_url_node(configuration['url'])
             url_node.access_time = datetime.now()
             url_node.found_at.connect(platform)
             url_node.scrapped_by.connect(scrapper)
@@ -63,35 +61,25 @@ class Adapter:
 
             artifacts.extend([platform, scrapper, url_node])
 
-            for title in product_titles:
-                title_text = await title.get_attribute('title')
-                title_url = await title.get_attribute('href')
+            for selector in configuration['selectors']:
+                product_nodes = await page.query_selector_all(selector['selector'])
 
-                product_url_node = create_url_node(title_url, url)
-                product_url_node.found_at.connect(platform)
-                product_url_node.scrapped_by.connect(scrapper)
-                product_url_node.save()
+                for node in product_nodes:
+                    if selector['extract_from'] == "attribute":
+                        value = await node.get_attribute(selector['attribute_name'])
+                    elif selector['extract_from'] == "text":
+                        value = await node.inner_text()
 
-                url_node.contain_url.connect(product_url_node)
-                url_node.save()
+                    neo_node = find_or_create_node(Artifact, {
+                        "artifact_type": selector['artifact_type'],
+                        "artifact_property": selector['artifact_attribute'],
+                        "artifact_value": value,
+                        "metadata": selector
+                    })
 
-                product_title_artifact = find_or_create_node(Artifact, {
-                    "artifact_type": 'Product',
-                    "artifact_property": 'title',
-                    "artifact_value": title_text,
-                    "metadata": {}
-                })
-                product_url_artifact = find_or_create_node(Artifact, {
-                    "artifact_type": 'Product',
-                    "artifact_property": 'internal_url',
-                    "artifact_value": title_url,
-                    "metadata": {}
-                })
+                    neo_node.containing_url.connect(url_node)
 
-                product_title_artifact.containing_url.connect(url_node)
-                product_url_artifact.containing_url.connect(url_node)
-
-                artifacts.extend([product_title_artifact, product_url_artifact, product_url_node])
+                    artifacts.extend([neo_node])
 
             self.publish_to_kafka(self.kafka_config.get("topik"), "test_adapter", {
                 "task_id": task_id,
