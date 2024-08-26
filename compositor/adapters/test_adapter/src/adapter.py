@@ -10,7 +10,7 @@ from shared.accessors import find_or_create_node
 from shared.models.artifact import Artifact
 from shared.models.platform import Platform
 from shared.models.scrapper import Scrapper
-from shared.models.url import Url
+from shared.models.url import create_url_node
 
 
 class Adapter:
@@ -53,23 +53,23 @@ class Adapter:
 
             platform = find_or_create_node(Platform, {"name": 'test-platform'})
             scrapper = find_or_create_node(Scrapper, {"name": 'TestAdapter'})
-            url = find_or_create_node(Url, {"url": url, "name": url})
-            url.access_time = datetime.now()
-            url.found_at.connect(platform)
-            url.scrapped_by.connect(scrapper)
+            url_node = create_url_node(url)
+            url_node.access_time = datetime.now()
+            url_node.found_at.connect(platform)
+            url_node.scrapped_by.connect(scrapper)
 
-            url.save()
+            url_node.save()
 
             for title in product_titles:
                 title_text = await title.get_attribute('title')
                 title_url = await title.get_attribute('href')
 
-                product_url = find_or_create_node(Url, {"url": title_url, "name": title_url})
+                product_url = create_url_node(title_url, url)
                 product_url.found_at.connect(platform)
                 product_url.scrapped_by.connect(scrapper)
                 product_url.save()
-                url.contain_url.connect(product_url)
-                url.save()
+                url_node.contain_url.connect(product_url)
+                url_node.save()
 
                 product_title_artifact = find_or_create_node(Artifact, {
                     "artifact_type": 'Product',
@@ -84,8 +84,8 @@ class Adapter:
                     "metadata": {}
                 })
 
-                product_title_artifact.containing_url.connect(url)
-                product_url_artifact.containing_url.connect(url)
+                product_title_artifact.containing_url.connect(url_node)
+                product_url_artifact.containing_url.connect(url_node)
 
             self.publish_to_kafka(self.kafka_config.get("topik"), "test_adapter", {
                 "task_id": task_id,
