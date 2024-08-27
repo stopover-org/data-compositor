@@ -21,8 +21,6 @@ def lambda_handler(event, context):
 
     path_params = event.get('pathParameters', {})
 
-    url = "https://webscraper.io/test-sites/e-commerce/allinone"
-
     adapter = Adapter(
         {
             "host": neo4j_host,

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/stopover-org/stopover/data-compositor/internal/graphql/graph/model"
 	"gorm.io/gorm"
 	"time"
@@ -22,7 +23,7 @@ type Task struct {
 	ID        uuid.UUID          `gorm:"type:uuid;primaryKey"`
 	Status    graphql.TaskStatus `gorm:"default:PENDING;not null"`
 	Retries   int                `gorm:"default:0;not null"`
-	Artifacts []string           `gorm:"type:text[]"`
+	Artifacts pq.StringArray     `gorm:"type:text[]"`
 
 	AdapterType   graphql.AdapterType `gorm:"type:string;nut null"`
 	Configuration json.RawMessage     `gorm:"type:jsonb;not null"`

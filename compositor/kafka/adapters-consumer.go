@@ -32,9 +32,7 @@ func StartKafkaConsumer(kafkaReader *kafka.Reader, db *gorm.DB) {
 			log.Panicf("Error parsing task id: %v", err)
 		}
 
-		task := &models.Task{
-			ID: taskId,
-		}
+		task := &models.Task{}
 
 		if err := db.First(task, "id = ?", taskId).Error; err != nil {
 			log.Panicf("Error finding task: %v", err)

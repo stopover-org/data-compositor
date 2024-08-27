@@ -1,0 +1,2 @@
+adapters:
+  TEST_ADAPTER: ${TEST_ADAPTER_URL}

@@ -7,7 +7,6 @@ import (
 )
 
 type TaskService interface {
-	ExecTask(id uuid.UUID) (*models.Task, error)
 	RetryTask(id uuid.UUID) (*models.Task, error)
 
 	GetTask(id uuid.UUID) (*models.Task, error)
