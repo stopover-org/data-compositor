@@ -5,6 +5,7 @@ from neomodel import StructuredNode, StringProperty, DateTimeProperty, Relations
 from shared.accessors import find_or_create_node
 from shared.models.platform import Platform
 from shared.models.scrapper import Scrapper
+from shared.utils.url_utils import construct_absolute_url
 
 
 class Url(StructuredNode):
@@ -24,7 +25,7 @@ class Url(StructuredNode):
 
 def create_url_node(url, parent_url=None):
     parent_host = urlparse(parent_url or url)
-    parsed_url = urlparse(url)
+    parsed_url = urlparse(construct_absolute_url(url, parent_url))
 
     scheme = parsed_url.scheme or parent_host.scheme
     host = parsed_url.hostname or parent_host.hostname

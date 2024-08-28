@@ -14,7 +14,45 @@
       "artifact_type": "Url",
       "attribute_name": "href",
       "artifact_attribute": "internal_url",
-      "task_adapter":
+      "task_adapter": "COMMON_ADAPTER",
+      "task_configuration": {
+        "url": "{{value}}",
+        "wait_for_selector": "h4.title",
+        "selectors": [
+          {
+            "selector": "h4.title",
+            "extract_from": "text",
+            "artifact_type": "Product",
+            "artifact_attribute": "title"
+          },
+          {
+            "selector": "p.description",
+            "extract_from": "text",
+            "artifact_type": "Product",
+            "artifact_attribute": "description"
+          },
+          {
+            "selector": ".dropdown select option.dropdown-item",
+            "extract_from": "attribute",
+            "artifact_type": "Product",
+            "attribute_name": "option",
+            "artifact_attribute": "value"
+          },
+          {
+            "selector": ".price",
+            "extract_from": "text",
+            "artifact_type": "Product",
+            "artifact_attribute": "price"
+          },
+          {
+            "selector": ".swatches button",
+            "extract_from": "attribute",
+            "artifact_type": "Product",
+            "attribute_name": "memory",
+            "artifact_attribute": "value"
+          }
+        ]
+      }
     }
   ],
   "wait_for_selector": ".card-body h4 a.title"

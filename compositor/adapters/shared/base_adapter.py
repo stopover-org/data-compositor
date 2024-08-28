@@ -11,6 +11,7 @@ from shared.models.artifact import Artifact
 from shared.models.platform import Platform
 from shared.models.scrapper import Scrapper
 from shared.models.url import create_url_node
+from shared.utils.url_utils import construct_absolute_url
 
 
 class BaseAdapter:
@@ -82,6 +83,23 @@ class BaseAdapter:
                         neo_node.containing_url.connect(url_node)
 
                         artifacts.extend([neo_node])
+
+                        if selector.get('task_adapter') and selector.get('task_configuration'):
+                            new_task_configuration = json.loads(
+                                json.dumps(selector['task_configuration'])
+                            )  # Deep copy of the object
+                            new_task_configuration['url'] = new_task_configuration['url'].replace(
+                                "{{value}}",
+                                construct_absolute_url(
+                                    value,
+                                    configuration['url']
+                                )
+                            )
+                            self.publish_to_kafka(self.kafka_config.get("topik"), "schedule_task", {
+                                "task_id": task_id,
+                                "adapter_type": selector["task_adapter"],
+                                "configuration": new_task_configuration
+                            })
 
                 self.publish_to_kafka(self.kafka_config.get("topik"), "update_task", {
                     "task_id": task_id,

@@ -59,36 +59,6 @@
           "artifact_type",
           "extract_from"
         ],
-        "dependencies": {
-          "extract_from": {
-            "oneOf": [
-              {
-                "properties": {
-                  "extract_from": {
-                    "enum": [
-                      "text"
-                    ]
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "extract_from": {
-                    "enum": [
-                      "attribute"
-                    ]
-                  },
-                  "attribute_name": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "attribute_name"
-                ]
-              }
-            ]
-          }
-        },
         "additionalProperties": false
       },
       "minItems": 1

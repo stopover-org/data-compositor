@@ -8,9 +8,9 @@ import (
 	"github.com/lib/pq"
 	"github.com/segmentio/kafka-go"
 	"github.com/stopover-org/stopover/data-compositor/db/models"
+	graphql "github.com/stopover-org/stopover/data-compositor/internal/graphql/graph/model"
 	"gorm.io/gorm"
 	"log"
-	"strings"
 	"time"
 )
 
@@ -18,55 +18,30 @@ func StartKafkaConsumer(kafkaReader *kafka.Reader, db *gorm.DB) {
 	for {
 		m, err := kafkaReader.ReadMessage(context.Background())
 		if err != nil {
-			log.Panicf("Error reading message from Kafka: %v", err)
+			log.Printf("Error reading message from Kafka: %v", err)
+			return
 		}
 
 		var data map[string]interface{}
 		err = json.Unmarshal(m.Value, &data)
 
 		if err != nil {
-			log.Panicf("Error unmarshalling JSON: %v", err)
+			log.Printf("Error unmarshalling JSON: %v", err)
+			return
 		}
 
-		taskId, err := uuid.Parse(data["task_id"].(string))
-		if err != nil {
-			log.Panicf("Error parsing task id: %v", err)
-		}
-
-		task := &models.Task{}
-
-		if err := db.Preload("Scheduling").First(task, "id = ?", taskId).Error; err != nil {
-			log.Panicf("Error finding task: %v", err)
-		}
-
-		taskUpdates := map[string]interface{}{}
-
-		if data["status"] != nil {
-			taskUpdates["Status"] = data["status"]
-		}
-
-		if data["executed_at"] != nil {
-			if taskUpdates["ExecutedAt"], err = dateparse.ParseAny(data["executed_at"].(string)); err != nil {
-				log.Panicf("Error parsing task executed_at: %v", err)
+		switch string(m.Key) {
+		case "update_task":
+			err := updateTaskConsumer(db, data)
+			if err != nil {
+				log.Printf("Error updating task: %v", err)
+				return
 			}
-		}
-
-		if data["retries"] != nil {
-			taskUpdates["Retries"] = data["retries"]
-		}
-
-		if data["artifacts"] != nil {
-			taskUpdates["Artifacts"] = pq.Array(data["artifacts"])
-		}
-
-		if err := db.Model(task).Updates(taskUpdates).Error; err != nil {
-			log.Fatalf("failed to update task status for task %s: %v", taskId, err)
-		}
-
-		if task.Scheduling.RetentionPeriod > 0 {
-			now := time.Now()
-			if err := db.Model(task.Scheduling).Update("NextScheduleTime", now.Add(time.Duration(task.Scheduling.RetentionPeriod)*time.Minute)).Error; err != nil {
-				log.Fatalf("failed to update task next_schedule_time: %v", err)
+		case "schedule_task":
+			err := scheduleNewTaskConsumer(db, data)
+			if err != nil {
+				log.Printf("Error creating task: %v", err)
+				return
 			}
 		}
 
@@ -75,6 +50,95 @@ func StartKafkaConsumer(kafkaReader *kafka.Reader, db *gorm.DB) {
 	}
 }
 
-func escapeQuotes(input string) string {
-	return strings.ReplaceAll(input, `"`, `\"`)
+func scheduleNewTaskConsumer(db *gorm.DB, data map[string]interface{}) error {
+	taskId, err := uuid.Parse(data["task_id"].(string))
+	if err != nil {
+		log.Panicf("Error parsing task id: %v", err)
+	}
+
+	existingTask := &models.Task{}
+
+	if err := db.Preload("Scheduling").First(existingTask, "id = ?", taskId).Error; err != nil {
+		log.Printf("Error finding task: %v", err)
+		return err
+	}
+
+	task := &models.Task{
+		Status: graphql.TaskStatusPending,
+	}
+
+	if data["adapter_type"] != nil {
+		task.AdapterType = graphql.AdapterType(data["adapter_type"].(string))
+	} else {
+		task.AdapterType = graphql.AdapterTypeCommonAdapter
+	}
+
+	if data["configuration"] != nil {
+		configuration, err := json.Marshal(data["configuration"])
+		if err != nil {
+			return err
+		}
+
+		task.Configuration = configuration
+	}
+
+	task.SchedulingID = existingTask.SchedulingID
+
+	if err := db.Save(task).Error; err != nil {
+		return nil
+	}
+
+	return nil
+}
+
+func updateTaskConsumer(db *gorm.DB, data map[string]interface{}) error {
+	taskId, err := uuid.Parse(data["task_id"].(string))
+	if err != nil {
+		log.Panicf("Error parsing task id: %v", err)
+	}
+
+	task := &models.Task{}
+
+	if err := db.Preload("Scheduling").First(task, "id = ?", taskId).Error; err != nil {
+		log.Printf("Error finding task: %v", err)
+		return err
+	}
+
+	taskUpdates := map[string]interface{}{}
+
+	if data["status"] != nil {
+		taskUpdates["Status"] = data["status"]
+	}
+
+	if data["executed_at"] != nil {
+		if taskUpdates["ExecutedAt"], err = dateparse.ParseAny(data["executed_at"].(string)); err != nil {
+			log.Printf("Error parsing task executed_at: %v", err)
+			return err
+		}
+	}
+
+	if data["retries"] != nil {
+		taskUpdates["Retries"] = data["retries"]
+	}
+
+	if data["artifacts"] != nil {
+		taskUpdates["Artifacts"] = pq.Array(data["artifacts"])
+	}
+
+	if err := db.Model(task).Updates(taskUpdates).Error; err != nil {
+		log.Printf("failed to update task status for task %s: %v", taskId, err)
+		return err
+	}
+
+	if task.Scheduling.RetentionPeriod > 0 {
+		now := time.Now()
+		if err := db.Model(task.Scheduling).Update("NextScheduleTime", now.Add(time.Duration(task.Scheduling.RetentionPeriod)*time.Second)).Error; err != nil {
+			log.Printf("failed to update task next_schedule_time: %v", err)
+			return err
+		}
+	}
+
+	log.Print("Task was updated")
+
+	return nil
 }
