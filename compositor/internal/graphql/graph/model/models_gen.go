@@ -108,16 +108,16 @@ type UpdateSchedulingInput struct {
 type AdapterType string
 
 const (
-	AdapterTypeTestAdapter AdapterType = "TEST_ADAPTER"
+	AdapterTypeCommonAdapter AdapterType = "COMMON_ADAPTER"
 )
 
 var AllAdapterType = []AdapterType{
-	AdapterTypeTestAdapter,
+	AdapterTypeCommonAdapter,
 }
 
 func (e AdapterType) IsValid() bool {
 	switch e {
-	case AdapterTypeTestAdapter:
+	case AdapterTypeCommonAdapter:
 		return true
 	}
 	return false

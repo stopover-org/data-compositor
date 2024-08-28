@@ -14,7 +14,7 @@
     },
     "selectors": {
       "type": "array",
-      "description": "An array of objects, each containing a CSS selector, its associated artifact type, and data extraction details.",
+      "description": "An array of objects, each containing a CSS selector, its associated artifact type, task adapter, and task configuration.",
       "items": {
         "type": "object",
         "properties": {
@@ -25,15 +25,11 @@
           },
           "artifact_type": {
             "type": "string",
-            "enum": [
-              "Product",
-              "Url"
-            ],
             "description": "The type of artifact to be created from the data associated with this selector."
           },
           "artifact_attribute": {
             "type": "string",
-            "description": "The attribute of artifact to be created from the data associated with this selector."
+            "description": "The attribute of the artifact to be created from the data associated with this selector."
           },
           "extract_from": {
             "type": "string",
@@ -47,6 +43,15 @@
             "type": "string",
             "description": "The name of the HTML attribute from which to extract data, required if 'extract_from' is 'attribute'.",
             "minLength": 1
+          },
+          "task_adapter": {
+            "type": "string",
+            "description": "The adapter type to be used for the task associated with this selector."
+          },
+          "task_configuration": {
+            "type": "object",
+            "description": "A JSON object containing the configuration details for the task.",
+            "additionalProperties": true
           }
         },
         "required": [

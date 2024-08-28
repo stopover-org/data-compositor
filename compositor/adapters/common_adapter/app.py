@@ -9,7 +9,7 @@ from src.adapter import Adapter
 
 app = FastAPI()
 
-with open('./schema.json', 'r') as file:
+with open('../shared/schema.json', 'r') as file:
     schema = json.load(file)
 
 
@@ -24,8 +24,6 @@ async def root(task_id, request: Request):
     kafka_user = os.environ['KAFKA_USER']
     kafka_password = os.environ['KAFKA_PASSWORD']
     kafka_topik = os.environ['KAFKA_TOPIK']
-
-    url = "https://webscraper.io/test-sites/e-commerce/allinone"
 
     adapter = Adapter(
         {

@@ -1,0 +1,21 @@
+{
+  "url": "https://webscraper.io/test-sites/e-commerce/allinone",
+  "selectors": [
+    {
+      "selector": ".card-body h4 a.title",
+      "extract_from": "attribute",
+      "artifact_type": "Product",
+      "attribute_name": "title",
+      "artifact_attribute": "title"
+    },
+    {
+      "selector": ".card-body h4 a.title",
+      "extract_from": "attribute",
+      "artifact_type": "Url",
+      "attribute_name": "href",
+      "artifact_attribute": "internal_url",
+      "task_adapter":
+    }
+  ],
+  "wait_for_selector": ".card-body h4 a.title"
+}
