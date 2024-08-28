@@ -43,7 +43,7 @@ func (s *schedulingServiceImpl) CreateScheduling(createdFields graphql.Schedulin
 
 	if createdFields.RetentionPeriod != nil {
 		retentionPeriod := *createdFields.RetentionPeriod
-		if retentionPeriod < 60 {
+		if retentionPeriod < 60 && retentionPeriod != 0 {
 			retentionPeriod = 60
 			createdFields.RetentionPeriod = &retentionPeriod
 		}

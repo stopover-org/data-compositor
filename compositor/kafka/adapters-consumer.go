@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"strings"
+	"time"
 )
 
 func StartKafkaConsumer(kafkaReader *kafka.Reader, db *gorm.DB) {
@@ -34,7 +35,7 @@ func StartKafkaConsumer(kafkaReader *kafka.Reader, db *gorm.DB) {
 
 		task := &models.Task{}
 
-		if err := db.First(task, "id = ?", taskId).Error; err != nil {
+		if err := db.Preload("Scheduling").First(task, "id = ?", taskId).Error; err != nil {
 			log.Panicf("Error finding task: %v", err)
 		}
 
@@ -60,6 +61,13 @@ func StartKafkaConsumer(kafkaReader *kafka.Reader, db *gorm.DB) {
 
 		if err := db.Model(task).Updates(taskUpdates).Error; err != nil {
 			log.Fatalf("failed to update task status for task %s: %v", taskId, err)
+		}
+
+		if task.Scheduling.RetentionPeriod > 0 {
+			now := time.Now()
+			if err := db.Model(task.Scheduling).Update("NextScheduleTime", now.Add(time.Duration(task.Scheduling.RetentionPeriod)*time.Minute)).Error; err != nil {
+				log.Fatalf("failed to update task next_schedule_time: %v", err)
+			}
 		}
 
 		log.Printf("Message received: key = %s, value = %s, partition = %d, offset = %d\n",
