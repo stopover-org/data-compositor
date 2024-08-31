@@ -137,7 +137,7 @@ func (s *schedulingServiceImpl) RemoveScheduling(id uuid.UUID) (*models.Scheduli
 	scheduling := &models.Scheduling{}
 
 	if scheduling.Status == graphql.SchedulingStatusActive {
-		return nil, errors.New("Active scheduling cannot be removed")
+		return nil, errors.New("active scheduling cannot be removed")
 	}
 
 	if err := s.db.First(scheduling, "id = ?", id).Error; err != nil {
@@ -153,6 +153,27 @@ func (s *schedulingServiceImpl) RemoveScheduling(id uuid.UUID) (*models.Scheduli
 
 func (s *schedulingServiceImpl) ScheduleNow(id uuid.UUID) (*models.Task, *models.Scheduling, error) {
 	scheduling := &models.Scheduling{}
+
+	if err := s.db.First(scheduling, "id = ? AND status = ?", id, graphql.SchedulingStatusActive).Error; err != nil {
+		return nil, scheduling, err
+	}
+
+	var retryTasks []models.Task
+
+	if err := s.db.Joins("JOIN schedulings ON schedulings.id = tasks.scheduling_id").
+		Where("tasks.scheduling_id = ? AND tasks.status = ? AND tasks.retries < schedulings.max_retries", id, graphql.TaskStatusFailed).
+		Find(&retryTasks).Error; err != nil {
+		return nil, scheduling, err
+	}
+
+	if len(retryTasks) > 0 {
+		if err := s.db.Model(&retryTasks).Update("status", graphql.TaskStatusPending).Error; err != nil {
+			return nil, scheduling, err
+		}
+
+		return &retryTasks[0], scheduling, nil
+	}
+
 	task := &models.Task{
 		Retries:       0,
 		Status:        graphql.TaskStatusPending,
@@ -160,12 +181,8 @@ func (s *schedulingServiceImpl) ScheduleNow(id uuid.UUID) (*models.Task, *models
 		Configuration: json.RawMessage([]byte("{}")), // Default empty JSON
 	}
 
-	if err := s.db.First(scheduling, "id = ? AND status = ?", id, graphql.SchedulingStatusActive).Error; err != nil {
-		return task, scheduling, err
-	}
-
 	if err := s.db.Where("scheduling_id = ?", id).Where("status = ? OR status = ?", graphql.TaskStatusPending, graphql.TaskStatusProcessing).First(task).Error; err == nil {
-		fmt.Sprintf(
+		fmt.Printf(
 			"scheduling %s was already scheduled", scheduling.ID.String(),
 		)
 

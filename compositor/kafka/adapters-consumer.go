@@ -84,6 +84,9 @@ func scheduleNewTaskConsumer(db *gorm.DB, data map[string]interface{}) error {
 
 	task.SchedulingID = existingTask.SchedulingID
 
+	now := time.Now()
+	task.ScheduledAt = &now
+
 	if err := db.Save(task).Error; err != nil {
 		return nil
 	}
@@ -117,12 +120,21 @@ func updateTaskConsumer(db *gorm.DB, data map[string]interface{}) error {
 		}
 	}
 
-	if data["retries"] != nil {
-		taskUpdates["Retries"] = data["retries"]
+	if data["status"] == graphql.TaskStatusFailed.String() || data["status"] == graphql.TaskStatusCompleted.String() {
+		taskUpdates["Retries"] = task.Retries + 1
 	}
 
 	if data["artifacts"] != nil {
 		taskUpdates["Artifacts"] = pq.Array(data["artifacts"])
+	}
+
+	if data["error"] != nil {
+		errorObj, err := json.Marshal(data["error"])
+		if err != nil {
+			return err
+		}
+
+		task.Error = errorObj
 	}
 
 	if err := db.Model(task).Updates(taskUpdates).Error; err != nil {

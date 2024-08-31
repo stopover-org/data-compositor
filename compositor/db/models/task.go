@@ -27,6 +27,7 @@ type Task struct {
 
 	AdapterType   graphql.AdapterType `gorm:"type:string;nut null"`
 	Configuration json.RawMessage     `gorm:"type:jsonb;not null"`
+	Error         json.RawMessage     `gorm:"type:jsonb"`
 
 	ScheduledAt *time.Time
 	ExecutedAt  *time.Time

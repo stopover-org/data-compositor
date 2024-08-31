@@ -32,13 +32,6 @@
             "artifact_attribute": "description"
           },
           {
-            "selector": ".dropdown select option.dropdown-item",
-            "extract_from": "attribute",
-            "artifact_type": "Product",
-            "attribute_name": "option",
-            "artifact_attribute": "value"
-          },
-          {
             "selector": ".price",
             "extract_from": "text",
             "artifact_type": "Product",
@@ -48,8 +41,8 @@
             "selector": ".swatches button",
             "extract_from": "attribute",
             "artifact_type": "Product",
-            "attribute_name": "memory",
-            "artifact_attribute": "value"
+            "attribute_name": "value",
+            "artifact_attribute": "memory"
           }
         ]
       }

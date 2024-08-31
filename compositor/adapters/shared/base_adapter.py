@@ -11,6 +11,7 @@ from shared.models.artifact import Artifact
 from shared.models.platform import Platform
 from shared.models.scrapper import Scrapper
 from shared.models.url import create_url_node
+from shared.utils.errors import exception_to_json
 from shared.utils.url_utils import construct_absolute_url
 
 
@@ -73,21 +74,27 @@ class BaseAdapter:
                         elif selector['extract_from'] == "text":
                             value = await node.inner_text()
 
-                        neo_node = find_or_create_node(Artifact, {
-                            "artifact_type": selector['artifact_type'],
-                            "artifact_property": selector['artifact_attribute'],
-                            "artifact_value": value,
-                            "metadata": selector
-                        })
-
-                        neo_node.containing_url.connect(url_node)
+                        if selector['artifact_type'] == 'Url':
+                            value = construct_absolute_url(value, configuration['url'])
+                            neo_node = create_url_node(value)
+                            neo_node.found_at.connect(platform)
+                            neo_node.scrapped_by.connect(scrapper)
+                        else:
+                            neo_node = find_or_create_node(Artifact, {
+                                "artifact_type": selector['artifact_type'],
+                                "artifact_property": selector['artifact_attribute'],
+                                "artifact_value": value,
+                                "metadata": selector
+                            })
+                            neo_node.containing_url.connect(url_node)
 
                         artifacts.extend([neo_node])
 
                         if selector.get('task_adapter') and selector.get('task_configuration'):
                             new_task_configuration = json.loads(
                                 json.dumps(selector['task_configuration'])
-                            )  # Deep copy of the object
+                            )
+
                             new_task_configuration['url'] = new_task_configuration['url'].replace(
                                 "{{value}}",
                                 construct_absolute_url(
@@ -95,6 +102,7 @@ class BaseAdapter:
                                     configuration['url']
                                 )
                             )
+
                             self.publish_to_kafka(self.kafka_config.get("topik"), "schedule_task", {
                                 "task_id": task_id,
                                 "adapter_type": selector["task_adapter"],
@@ -105,7 +113,6 @@ class BaseAdapter:
                     "task_id": task_id,
                     "status": "COMPLETED",
                     "executed_at": datetime.now().isoformat(),
-                    "retries": 1,
                     "artifacts": [artifact.element_id for artifact in artifacts]
                 })
 
@@ -116,6 +123,7 @@ class BaseAdapter:
                 "task_id": task_id,
                 "status": "FAILED",
                 "executed_at": datetime.now().isoformat(),
+                "error": exception_to_json(e)
             })
 
     def publish_to_kafka(self, topic, key, value):
