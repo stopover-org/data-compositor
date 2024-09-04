@@ -58,40 +58,38 @@ services:
       - ./neo4j_db/import:/var/lib/neo4j/import
       - ./neo4j_db/plugins:/plugins
 
-  # Keycloak service for authentication and authorization
   keycloak:
     build:
-      context: keycloak  # Build context for Keycloak
-    container_name: compositor-keycloak  # Container name for easier identification
+      context: keycloak
+    container_name: compositor-keycloak
     environment:
-      KEYCLOAK_ADMIN: admin  # Keycloak admin username
-      KEYCLOAK_ADMIN_PASSWORD: admin  # Keycloak admin password
-      KEYCLOAK_DATABASE_VENDOR: postgres  # Database vendor
-      KC_DB: postgres  # Database name
-      KC_DB_URL_HOST: db  # Database host
-      KC_DB_URL_DATABASE: keycloak  # Database URL
-      KC_DB_URL_PORT: 5432  # Database port
-      KC_DB_USERNAME: robot  # Database username
-      KC_DB_PASSWORD: password  # Database password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KEYCLOAK_DATABASE_VENDOR: postgres
+      KC_DB: postgres
+      KC_DB_URL_HOST: db
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_URL_PORT: 5432
+      KC_DB_USERNAME: robot
+      KC_DB_PASSWORD: password
     ports:
-      - '8081:8080'  # Expose Keycloak on port 8081
+      - '8080:8080'
     volumes:
-      - ./keystore.p12:/keystore.p12  # Volume for keystore
-      - ./keycloak/themes/stopover:/opt/keycloak/themes/stopover  # Volume for Keycloak themes
+      - ./keystore.p12:/keystore.p12
+      - ./keycloak/themes/stopover:/opt/keycloak/themes/stopover
     depends_on:
-      - db  # Wait for the database to be ready
+      - db
 
-  # PostgreSQL database service
   db:
-    image: postgres  # PostgreSQL image
+    image: postgres
     container_name: compositor-db
     volumes:
-      - postgres_data:/var/lib/postgresql/data  # Data volume
+      - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: robot  # Database username
-      POSTGRES_PASSWORD: password  # Database password
+      POSTGRES_USER: robot
+      POSTGRES_PASSWORD: password
     ports:
-      - '5432:5432'  # Expose PostgreSQL on port 5432
+      - '5432:5432'
 
 networks:
   my_network:

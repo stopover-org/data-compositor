@@ -81,7 +81,7 @@ export const authOptions: AuthOptions = {
         !Array.isArray(token?.groups) ||
         !(token.groups as string[])
           .map((group: string) => group.toLowerCase())
-          .includes("/analyst")
+          .includes("analyst")
       ) {
         await signOutKeycloak(token);
 

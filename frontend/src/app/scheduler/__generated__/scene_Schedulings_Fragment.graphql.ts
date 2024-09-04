@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<114e863b9f05871f7e5a11a731c6ed5d>>
+ * @generated SignedSource<<4328adad4b011bc95d72c0739acb3c3e>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,7 +9,7 @@
 // @ts-nocheck
 
 import { ReaderFragment, RefetchableFragment } from 'relay-runtime';
-export type AdapterType = "TEST_ADAPTER" | "%future added value";
+export type AdapterType = "COMMON_ADAPTER" | "%future added value";
 export type SchedulingStatus = "ACTIVE" | "INACTIVE" | "%future added value";
 import { FragmentRefs } from "relay-runtime";
 export type scene_Schedulings_Fragment$data = {

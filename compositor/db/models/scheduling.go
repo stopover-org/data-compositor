@@ -20,7 +20,7 @@ func validateSchedulingStatus(status graphql.SchedulingStatus) error {
 
 func validateAdapterType(adapterType graphql.AdapterType) error {
 	switch adapterType {
-	case graphql.AdapterTypeViatorEventScrapper:
+	case graphql.AdapterTypeCommonAdapter:
 		return nil
 	default:
 		return fmt.Errorf("invalid AdapterType: %s", adapterType)

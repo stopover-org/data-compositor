@@ -61,7 +61,7 @@ const NewSchedulingForm = () => {
     },
     [commitMutation, isMutationInFlight, router],
   );
-  const adapterTypes: AdapterType[] = useMemo(() => ["TEST_ADAPTER"], []);
+  const adapterTypes: AdapterType[] = useMemo(() => ["COMMON_ADAPTER"], []);
 
   return (
     <form

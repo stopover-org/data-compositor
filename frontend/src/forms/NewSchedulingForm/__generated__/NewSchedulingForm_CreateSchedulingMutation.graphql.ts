@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<bc942fc814ef01c977992d643dc383d5>>
+ * @generated SignedSource<<46b6bce56209d759307a3bceca743156>>
  * @lightSyntaxTransform
  * @nogrep
  */
@@ -9,7 +9,7 @@
 // @ts-nocheck
 
 import { ConcreteRequest, Mutation } from 'relay-runtime';
-export type AdapterType = "TEST_ADAPTER" | "%future added value";
+export type AdapterType = "COMMON_ADAPTER" | "%future added value";
 export type SchedulingStatus = "ACTIVE" | "INACTIVE" | "%future added value";
 export type SchedulingInput = {
   adapterType: AdapterType;

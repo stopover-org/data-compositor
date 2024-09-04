@@ -627,7 +627,7 @@ enum SchedulingStatus {
 }
 
 enum AdapterType {
-    TEST_ADAPTER
+    COMMON_ADAPTER
 }
 
 input SchedulingFilterInput {

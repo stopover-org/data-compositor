@@ -1,0 +1,2 @@
+adapters:
+  COMMON_ADAPTER: ${COMMON_ADAPTER_URL}
