@@ -6,7 +6,7 @@ services:
       context: common_adapter
     env_file: common_adapter/.env
     ports:
-      - "${PORT}:8000"
+      - "8000:8000"
     networks:
       - shared_network
 

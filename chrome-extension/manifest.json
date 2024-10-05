@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Data Compositor Chrome Extension",
+  "version": "1.0",
+  "description": "Monitors and logs all XHR requests from the active tab.",
+  "permissions": [
+    "webRequest",
+    "cookies",
+    "tabs",
+    "windows"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
