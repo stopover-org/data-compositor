@@ -1,0 +1,33 @@
+# Node.js dependencies
+node_modules/
+
+# Build output directory
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript cache
+*.tsbuildinfo
+
+# MacOS system files
+.DS_Store
+
+# Temporary files
+*.tmp
+*.swp
+
+# VSCode files
+.vscode/
+.vscode/*
+
+# Ignore dotenv file for environment variables (if any)
+.env
+
+# Webpack output, cache, and temporary files
+webpack.config.js.*
+.cache/
+
+.idea/

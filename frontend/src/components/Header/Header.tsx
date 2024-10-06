@@ -22,7 +22,7 @@ const Header = () => {
             <span className="sr-only">Your Company</span>
             <img
               alt="logo"
-              src="https://s3.eu-north-1.amazonaws.com/stopoverx.production/stopover-logo-2colorized.png"
+              src="https://stopoverx-public-dev.s3.eu-central-1.amazonaws.com/stopover+logo.png"
               className="h-8 w-auto"
             />
           </a>

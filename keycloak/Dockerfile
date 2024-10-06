@@ -1,5 +1,5 @@
 # Stage 1: Build Keycloak
-FROM quay.io/keycloak/keycloak:latest AS builder
+FROM quay.io/keycloak/keycloak:25.0.0 AS builder
 
 # Configure a database vendor
 ENV KC_DB=postgres
@@ -23,7 +23,7 @@ RUN wget https://github.com/jwilder/dockerize/releases/download/v0.6.1/dockerize
     chmod +x /usr/local/bin/dockerize
 
 # Final stage: Create the final image
-FROM quay.io/keycloak/keycloak:latest
+FROM quay.io/keycloak/keycloak:25.0.0
 
 # Copy built Keycloak files from the builder stage
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
@@ -32,7 +32,7 @@ COPY --from=builder /opt/keycloak/ /opt/keycloak/
 COPY --from=tools /usr/local/bin/dockerize /usr/local/bin/dockerize
 
 # Copy custom themes
-COPY ./themes/stopover/ /opt/keycloak/themes/stopover
+COPY ./themes /opt/keycloak/themes
 
 # Set the entrypoint to use dockerize for waiting
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start-dev"]

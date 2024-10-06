@@ -7,7 +7,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import NoAccess from "@/components/NoAccess";
 import { cookies } from "next/headers";
-import Cookies from "universal-cookie";
 
 const inter = Inter({ subsets: ["latin"] });
 

@@ -44,23 +44,9 @@ func initDB() {
 		},
 	)
 
-	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_PORT"),
-	)
-
 	dbName := os.Getenv("DB_NAME")
 
-	// Check if the database exists, create if not
-	if err := checkAndCreateDatabase(dsn, dbName); err != nil {
-		log.Fatalf("Error checking or creating database: %v", err)
-	}
-
-	// Connect to the database
-	dsn = fmt.Sprintf(
+	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_USER"),
@@ -68,6 +54,10 @@ func initDB() {
 		dbName,
 		os.Getenv("DB_PORT"),
 	)
+	// Check if the database exists, create if not
+	if err := checkAndCreateDatabase(dsn, dbName); err != nil {
+		log.Fatalf("Error checking or creating database: %v", err)
+	}
 
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{Logger: customLogger})
 	if err != nil {
