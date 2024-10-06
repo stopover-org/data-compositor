@@ -34,6 +34,8 @@ enum SchedulingStatus {
 
 enum AdapterType {
     COMMON_ADAPTER
+    VIATOR_EVENTS_LIST_ADAPTER
+    VIATOR_EVENT_ADAPTER
 }
 
 input SchedulingFilterInput {
