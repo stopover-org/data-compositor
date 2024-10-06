@@ -52,7 +52,7 @@ class BaseAdapter:
                 page = await browser.new_page()
                 artifacts = []
                 await page.goto(configuration['url'])
-                await page.wait_for_selector(configuration['wait_for_selector'])
+                await page.wait_for_selector(configuration['wait_for_selector'], state='attached', timeout=10000)
 
                 platform = find_or_create_node(Platform, {"name": self.platform_name})
                 scrapper = find_or_create_node(Scrapper, {"name": self.adapter_name})
@@ -73,6 +73,8 @@ class BaseAdapter:
                             value = await node.get_attribute(selector['attribute_name'])
                         elif selector['extract_from'] == "text":
                             value = await node.inner_text()
+                        elif selector['extract_from'] == "html":
+                            value = await node.inner_html()
 
                         if selector['artifact_type'] == 'Url':
                             value = construct_absolute_url(value, configuration['url'])
